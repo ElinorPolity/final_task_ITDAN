@@ -10,7 +10,7 @@ def get_soup():
         return soup
     else:
         return "Failure"
-    
+#לפונקציה הזאת נקרא בשביל לקבל את הדטא פריים שלנו
 def get_the_df(soup):
     address=list()
     df=ps.DataFrame(columns=["prodName","Category","price","Image_url","description","Size"])
@@ -18,13 +18,17 @@ def get_the_df(soup):
     for tag in tag_b:
         children = tag.find("a")
         address.append("https://kualastyle.com" +  children.get("href"))
+    #עד לפה זה מה שעשיתם
+    #נהפוך את הרשימה של הכתובות לדטא פריים
     address_chart = ps.DataFrame({"address":address})
+    #נבצע עליו את הפונקציה של אפלאי - הפונקציה בתוך האפלאי נמצאת בהמשך
     tuple_of_tags=address_chart["address"].apply(find_the_tags)
+    #בשורה הקודמת קבלנו טאפל של נתונים בתוך עמודה אחת של דטא פריים. נרצה להפריד את הנתונים בטאפל כדי להכניס אותם לעמודות זה מה שקורה בשורות הבאות
     for row in tuple_of_tags:
         df_length = len(df)
         df.loc[df_length] = row
     return df
-
+#פונקציה זאת אחראית לשלוף את התגיות מהרשת ולשלוף את המידע אותו אנחנו צריכים
 def find_the_tags(address):
     response1=requests.get(address)
     Category="שולחנות-צד-שולחנות-קפה"
@@ -34,15 +38,19 @@ def find_the_tags(address):
         prodName=prodName[prodName.find("|")+1:]
         price=results_page.find("span", class_="product-price-minimum money").get_text().strip()
         Image_url=results_page.find_all("img")[5].get("src")
+        #פה נתקלתי בבעיה מכיוון שכותבי האתר עשו בעיה וכתבו את התגיות שונות עבור כל תיאור. הייתי צריכה לחזור לאב הקדמון ולרדת ממנו לילדים בשביל לגשת לכל התגיות המתאימות
         description_father=results_page.find_all("div" ,class_="easyslider-content-wrapper")
+        #הילד הראשון היה תגית התיאור
         description = description_father[0].findChildren()[0].get_text().strip()
+        #פה אני מטפלת בתגיות עבור דפים שנכתבו שונה, במקרה זה התיאור היה בתגית 4
         if description=="":
             description=description_father[0].findChildren()[4].get_text()
         Size=description_father[0].findChildren("ul")[0].get_text()
         Size=Size.replace("\n"," ")
-        #.findChildren("li") 
         return prodName,Category,price,Image_url,description,Size
-
+    else:
+        return "NaN","NaN","NaN","NaN","NaN","NaN"
+    
 if __name__ == "__main__":
     soup=get_soup()
     address_chart=get_the_df(soup)
