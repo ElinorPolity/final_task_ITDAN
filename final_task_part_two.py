@@ -17,3 +17,33 @@ data_tweets["device"]=data_tweets["device"].apply(lambda row : "pc" if row=="Twi
 data_tweets["word_count"]=data_tweets["text"].apply(lambda row : row.split(" "))
 data_tweets["word_count"]=data_tweets["word_count"].apply(lambda row : len(row))
 data_tweets["word_count"]
+#שאלה 2
+#עשיתי אנקודינג לפי יוטיאף כי במה שאלינור עשתה יצא לי הרבה ג'יבריש#
+data_users = pd.read_csv("users_metrics.csv",encoding = "utf-8")
+
+data_users["Num_words_in_desc"] = data_users["description"].apply(lambda row: str(row))
+data_users["Num_words_in_desc"] = data_users["Num_words_in_desc"].apply(lambda row: 0 if row == "nan" else len(row.split(" ")))
+#במטלה כתוב להוסיף איז-סלב אם יש לו מעל מספר עוקבים ואני הוספתי סטרינג ריק אם לא . אני לא בטוח שזה עונה לדרישה
+data_users["is_celeb"] = data_users["followers_count"].apply(lambda row : 1 if row>100000 else 0)
+#מפה החלק של אלינור
+data_users["user_id"]=data_users["user_id"].apply(lambda row : np.float64(row))
+def number_of_tweets_collected(user_id):
+    
+    index=data_tweets["user_id"]==user_id
+    return index.value_counts()[1]
+
+data_users["collected_tweets"]=data_users["user_id"].apply(lambda row : number_of_tweets_collected(row))
+data_users["collected_tweets_percent"]=data_users.apply(lambda row : (row.collected_tweets/row.statuses_count)*100 ,axis=1)
+
+#שאלה 3
+#בשאלה 3 נתקלתי בקושי שלא הצלחתי לפתור. צריך לעשות דטא פריים חדש של הקבצים. את כל החיבור לקבוצות עשיתי על הטבלה המקורית של הציוצים. חשבתי שאולי אחר כך יהיה אפשר לחלץ את המידע בצורה מסודרת
+tweets_monthly_summery=pd.DataFrame(columns = ["user_id","Year","Month","Tweet_count","Hashtag_count","Percent_mobile","Retweet_count","Location_sharing_count","Quote_count"])
+tweets_monthly_summery["user_id"]=data_tweets["user_id"]
+data_tweets["created at"]=data_tweets["created at"].apply(lambda row : str(row))
+data_tweets["Year"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[len(row)-5:])
+data_tweets["Month"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[4:7])
+data_tweets["Year"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[len(row)-5:])
+data_tweets["Tweet_count"]=data_tweets.groupby("user_id")["Month"].transform("count")
+
+#אני לא יודעת אם השלב הבא צריך לבדוק את זה
+data_tweets["Hashtag_count"]=data_tweets.groupby("user_id")["Month","hashtag_count"].transform("sum")["hashtag_count"]
