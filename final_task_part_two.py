@@ -39,6 +39,23 @@ data_users["collected_tweets_percent"]=data_users.apply(lambda row : (row.collec
 #בשאלה 3 נתקלתי בקושי שלא הצלחתי לפתור. צריך לעשות דטא פריים חדש של הקבצים. את כל החיבור לקבוצות עשיתי על הטבלה המקורית של הציוצים. חשבתי שאולי אחר כך יהיה אפשר לחלץ את המידע בצורה מסודרת
 tweets_monthly_summery=pd.DataFrame(columns = ["user_id","Year","Month","Tweet_count","Hashtag_count","Percent_mobile","Retweet_count","Location_sharing_count","Quote_count"])
 tweets_monthly_summery["user_id"]=data_tweets["user_id"]
+
+# הקוד של אביב לתחילת שאלה 3
+data_tweets["user_id"]=data_tweets["user_id"].apply(lambda row : str(row)) #change user_id column to str
+data_tweets["user_year_month"]=data_tweets[['user_id', 'Year', 'Month']].agg('-'.join, axis=1) #join the columns user_id,Year,Month together in 0ne column in the data_tweets table
+
+data_tweets["monthly_tweet_count"]=data_tweets.groupby(by="user_year_month")["user_year_month"].transform('count') #count the tweets by the "user_year_month" column
+
+data_tweets["user_id"]=data_tweets["user_id"].apply(lambda row : np.float64(row)) #change back the user_id to float64
+data_tweets.loc[(data_tweets['user_id'] == 13679) & (data_tweets['Month'] == 'Aug')].head(56)# check the table to see if the clomun "monthly_tweet_count" is ok
+
+data_tweets.groupby(['user_id','Year','Month'])['Month'].count() # using the groupby function to see if the data is correct
+
+data_tweets["monthly_hashtag_count"]=data_tweets.groupby(by="user_year_month")["hashtag_count"].transform('sum')  #sum the hashtags by the "user_year_month" column
+
+data_tweets.loc[(data_tweets['user_id'] == 13679) & (data_tweets['Month'] == 'Nov')].head(20) # check the table to see if the clomun "monthly_hashtag_count" is ok
+
+data_tweets.groupby(['user_id','Year','Month'])['hashtag_count'].sum() # using the groupby function to see if the data is correct
 data_tweets["created at"]=data_tweets["created at"].apply(lambda row : str(row))
 data_tweets["Year"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[len(row)-5:])
 data_tweets["Month"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[4:7])
