@@ -4,7 +4,7 @@ import json
 from bs4 import BeautifulSoup
 
 data_tweets = pd.read_csv("tweets_metrics.csv",encoding = "ISO-8859-1")
-data_tweets
+
 data_tweets["hashtag_count"]=data_tweets["hashtags"].apply(lambda row: json.loads(row))
 data_tweets["hashtag_count"]=data_tweets["hashtag_count"].apply(lambda row: len(row))
 data_tweets["shared_geo_location"]=data_tweets["geo"].apply(lambda row: 0 if row!=row else 1)
@@ -38,29 +38,44 @@ data_users["collected_tweets_percent"]=data_users.apply(lambda row : (row.collec
 #שאלה 3
 #בשאלה 3 נתקלתי בקושי שלא הצלחתי לפתור. צריך לעשות דטא פריים חדש של הקבצים. את כל החיבור לקבוצות עשיתי על הטבלה המקורית של הציוצים. חשבתי שאולי אחר כך יהיה אפשר לחלץ את המידע בצורה מסודרת
 tweets_monthly_summery=pd.DataFrame(columns = ["user_id","Year","Month","Tweet_count","Hashtag_count","Percent_mobile","Retweet_count","Location_sharing_count","Quote_count"])
-tweets_monthly_summery["user_id"]=data_tweets["user_id"]
 
-# הקוד של אביב לתחילת שאלה 3
-data_tweets["user_id"]=data_tweets["user_id"].apply(lambda row : str(row)) #change user_id column to str
-data_tweets["user_year_month"]=data_tweets[['user_id', 'Year', 'Month']].agg('-'.join, axis=1) #join the columns user_id,Year,Month together in 0ne column in the data_tweets table
-
-data_tweets["monthly_tweet_count"]=data_tweets.groupby(by="user_year_month")["user_year_month"].transform('count') #count the tweets by the "user_year_month" column
-
-data_tweets["user_id"]=data_tweets["user_id"].apply(lambda row : np.float64(row)) #change back the user_id to float64
-data_tweets.loc[(data_tweets['user_id'] == 13679) & (data_tweets['Month'] == 'Aug')].head(56)# check the table to see if the clomun "monthly_tweet_count" is ok
-
-data_tweets.groupby(['user_id','Year','Month'])['Month'].count() # using the groupby function to see if the data is correct
-
-data_tweets["monthly_hashtag_count"]=data_tweets.groupby(by="user_year_month")["hashtag_count"].transform('sum')  #sum the hashtags by the "user_year_month" column
-
-data_tweets.loc[(data_tweets['user_id'] == 13679) & (data_tweets['Month'] == 'Nov')].head(20) # check the table to see if the clomun "monthly_hashtag_count" is ok
-
-data_tweets.groupby(['user_id','Year','Month'])['hashtag_count'].sum() # using the groupby function to see if the data is correct
 data_tweets["created at"]=data_tweets["created at"].apply(lambda row : str(row))
 data_tweets["Year"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[len(row)-5:])
 data_tweets["Month"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[4:7])
-data_tweets["Year"]=data_tweets["created at"].apply(lambda row : "" if row == "nan" else row[len(row)-5:])
-data_tweets["Tweet_count"]=data_tweets.groupby("user_id")["Month"].transform("count")
 
-#אני לא יודעת אם השלב הבא צריך לבדוק את זה
-data_tweets["Hashtag_count"]=data_tweets.groupby("user_id")["Month","hashtag_count"].transform("sum")["hashtag_count"]
+data_tweets["user_id"]=data_tweets["user_id"].apply(lambda row : str(row)) #change user_id column to str
+data_tweets["user_year_month"]=data_tweets[['user_id', 'Year', 'Month']].agg('-'.join, axis=1) #join the columns user_id,Year,Month together in 0ne column in the data_tweets table
+data_tweets["monthly_tweet_count"]=data_tweets.groupby(by="user_year_month")["user_year_month"].transform('count') #count the tweets by the "user_year_month" column
+data_tweets["user_id"]=data_tweets["user_id"].apply(lambda row : np.float64(row)) #change back the user_id to float64
+data_tweets["monthly_hashtag_count"]=data_tweets.groupby(by="user_year_month")["hashtag_count"].transform('sum')  #sum the hashtags by the "user_year_month" column
+#elinor code for question 3 
+data_tweets["device"]=data_tweets["device"].apply(lambda row :1 if row=="mobile" else 0)#change mobile to one
+data_tweets["monthly_moblie_percent_tweets"]=data_tweets.groupby(by="user_year_month")["device"].transform('sum')#count by mounth and year
+data_tweets["monthly_moblie_percent_tweets"]=data_tweets.apply(lambda row: (row.monthly_moblie_percent_tweets/row.monthly_tweet_count)*100 ,axis=1)#ture to precent
+data_tweets["device"]=data_tweets["device"].apply(lambda row :"mobile" if row==1 else "pc")#change the rows back to pc and mobile
+
+data_tweets["monthly_retweets_count"]=data_tweets.groupby(by="user_year_month")["retweet_count"].transform('sum')
+
+data_tweets["geo_duplicate"]=data_tweets["geo"].apply(lambda row :0 if  row !=row else 1)#give one when location is shared
+data_tweets["monthly_location_sharing_count"]=data_tweets.groupby(by="user_year_month")["geo_duplicate"].transform('sum')#sum
+data_tweets.drop("geo_duplicate",axis=1)#remove the duplicate coulumn
+
+data_tweets["is_quote_status"] = data_tweets["is_quote_status"].apply(lambda row :1 if row else 0)
+data_tweets["monthly_quote_count"]=data_tweets.groupby(by="user_year_month")["is_quote_status"].transform('sum')
+data_tweets["is_quote_status"] = data_tweets["is_quote_status"].apply(lambda row :True if row==1 else False)
+
+data_tweets["number_of_total_tweets"]=data_tweets.groupby("user_id")["tweet_id"].transform('count')
+data_tweets["monthly_percent_tweets_from_total"]=data_tweets.apply(lambda row: (row.monthly_tweet_count/row.number_of_total_tweets)*100,axis=1)
+data_tweets.drop("number_of_total_tweets",axis=1)
+
+#incerst all the coulmns that we need from data tweets to our new data frame and drop all the duplicated rows.
+tweets_monthly_summery[["user_id","Year","Month","Tweet_count","Hashtag_count","Percent_mobile","Retweet_count","Location_sharing_count","Quote_count","Monthly_tweets_percent"]]=data_tweets[["user_id","Year","Month","monthly_tweet_count","monthly_hashtag_count","monthly_moblie_percent_tweets","monthly_retweets_count","monthly_location_sharing_count","monthly_quote_count","monthly_percent_tweets_from_total"]]
+tweets_monthly_summery=tweets_monthly_summery.drop_duplicates()
+tweets_monthly_summery=tweets_monthly_summery.reset_index()
+
+
+
+
+
+
+
