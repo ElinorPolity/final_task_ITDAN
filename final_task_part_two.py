@@ -73,6 +73,44 @@ tweets_monthly_summery[["user_id","Year","Month","Tweet_count","Hashtag_count","
 tweets_monthly_summery=tweets_monthly_summery.drop_duplicates()
 tweets_monthly_summery=tweets_monthly_summery.reset_index()
 
+#hists and plots
+data_tweets["number_of_tweets"]=data_tweets.groupby("user_id")["user_id"].transform("count")
+data_tweets.head(20)
+data_temp=pd.DataFrame(columns=["user_id","number_of_tweets"])
+data_temp[["user_id","number_of_tweets"]]=data_tweets[["user_id","number_of_tweets"]]
+data_temp=data_temp.drop_duplicates().reset_index()
+data_temp["number_of_tweets"].hist()
+
+#units of followers showing in thousdns
+x=data_users["followers_count"]/1000
+x.hist()
+
+#units of followers shown is in miliions
+data_users.sort_values('followers_count',ascending = False).head(10).plot(x="name",y="followers_count",kind="bar")
+
+data_users.plot(x='followers_count',y="statuses_count",kind="scatter")
+
+X = data_users["followers_count"].values.reshape(-1, 1) # values converts it into a numpy array
+Y = data_users["statuses_count"].values.reshape(-1, 1)  # -1 means that calculate the dimension of rows, but have 1 column
+linear_regressor = LinearRegression()  # create object for the class
+linear_regressor.fit(X, Y)  # perform linear regression
+Y_pred = linear_regressor.predict(X)
+plt.scatter(X, Y)
+plt.plot(X, Y_pred, color='red')
+plt.show()
+
+data_users.plot(x='friends_count',y="statuses_count",kind="scatter")
+
+X = data_users['friends_count'].values.reshape(-1, 1) # values converts it into a numpy array
+Y = data_users["statuses_count"].values.reshape(-1, 1)  # -1 means that calculate the dimension of rows, but have 1 column
+linear_regressor = LinearRegression()  # create object for the class
+linear_regressor.fit(X, Y)  # perform linear regression
+Y_pred = linear_regressor.predict(X)
+plt.scatter(X, Y)
+plt.plot(X, Y_pred, color='red')
+plt.show()
+
+
 
 
 
