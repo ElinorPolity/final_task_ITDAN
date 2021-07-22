@@ -62,9 +62,11 @@ data_tweets["is_quote_status"] = data_tweets["is_quote_status"].apply(lambda row
 data_tweets["monthly_quote_count"]=data_tweets.groupby(by="user_year_month")["is_quote_status"].transform('sum')
 data_tweets["is_quote_status"] = data_tweets["is_quote_status"].apply(lambda row :True if row==1 else False)
 
-data_tweets["number_of_total_tweets"]=data_tweets.groupby("user_id")["tweet_id"].transform('count')
-data_tweets["monthly_percent_tweets_from_total"]=data_tweets.apply(lambda row: (row.monthly_tweet_count/row.number_of_total_tweets)*100,axis=1)
-data_tweets.drop("number_of_total_tweets",axis=1)
+temp_data=pd.DataFrame()
+temp_data[["user_id","statuses_count"]]=data_users[["user_id","statuses_count"]]
+temp_data=data_tweets.merge(temp_data, how='left', on='user_id')
+data_tweets["monthly_percent_tweets_from_total"]=temp_data.apply(lambda row: (row.monthly_tweet_count/row.statuses_count)*100,axis=1)
+
 
 #incerst all the coulmns that we need from data tweets to our new data frame and drop all the duplicated rows.
 tweets_monthly_summery[["user_id","Year","Month","Tweet_count","Hashtag_count","Percent_mobile","Retweet_count","Location_sharing_count","Quote_count","Monthly_tweets_percent"]]=data_tweets[["user_id","Year","Month","monthly_tweet_count","monthly_hashtag_count","monthly_moblie_percent_tweets","monthly_retweets_count","monthly_location_sharing_count","monthly_quote_count","monthly_percent_tweets_from_total"]]
