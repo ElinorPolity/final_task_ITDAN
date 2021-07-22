@@ -56,9 +56,7 @@ data_tweets["device"]=data_tweets["device"].apply(lambda row :"mobile" if row==1
 
 data_tweets["monthly_retweets_count"]=data_tweets.groupby(by="user_year_month")["retweet_count"].transform('sum')
 
-data_tweets["geo_duplicate"]=data_tweets["geo"].apply(lambda row :0 if  row !=row else 1)#give one when location is shared
-data_tweets["monthly_location_sharing_count"]=data_tweets.groupby(by="user_year_month")["geo_duplicate"].transform('sum')#sum
-data_tweets.drop("geo_duplicate",axis=1)#remove the duplicate coulumn
+data_tweets["monthly_location_sharing_count"]=data_tweets.groupby(by="user_year_month")["shared_geo_location"].transform('sum')#sum
 
 data_tweets["is_quote_status"] = data_tweets["is_quote_status"].apply(lambda row :1 if row else 0)
 data_tweets["monthly_quote_count"]=data_tweets.groupby(by="user_year_month")["is_quote_status"].transform('sum')
