@@ -109,7 +109,13 @@ plt.plot(X, Y_pred, color='red')
 plt.show()
 
 
+data_tweets.to_csv(r"C:\FINAL_TASK_ITKAD\users.csv",encoding = "ISO-8859-1")
+data_users.to_csv(r"C:\FINAL_TASK_ITKAD\tweets.csv" )
+tweets_monthly_summery.to_csv(r"C:\FINAL_TASK_ITKAD\tweets_monthly_summery.csv")
 
+data_tweets.to_html(r"C:\FINAL_TASK_ITKAD\users.html")
+data_users.to_html(r"C:\FINAL_TASK_ITKAD\tweets.html" )
+tweets_monthly_summery.to_html(r"C:\FINAL_TASK_ITKAD\tweets_monthly_summery.html")
 
 
 
